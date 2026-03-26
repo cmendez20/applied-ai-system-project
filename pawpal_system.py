@@ -25,9 +25,9 @@ class Task:
     description: str
     duration_in_minutes: int
     frequency: str
+    pet_id: str
     is_completed: bool = False
     priority: int = 1
-    pet_id: str
 
     def __post_init__(self) -> None:
         if not self.description.strip():
