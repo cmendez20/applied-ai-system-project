@@ -17,6 +17,7 @@ def print_schedule(owner: Owner, schedule: list[Task]) -> None:
         status = "Done" if task.is_completed else "Pending"
         print(
             f"{index:>2}. [{pet_label}] {task.description} | "
+            f"time: {task.time} | "
             f"{task.duration_in_minutes} min | "
             f"freq: {task.frequency} | priority: {task.priority} | {status}"
         )
@@ -37,6 +38,7 @@ def main() -> None:
             frequency="daily",
             priority=3,
             pet_id="p1",
+            time="08:30",
         )
     )
     owner.add_task(
@@ -46,6 +48,7 @@ def main() -> None:
             frequency="daily",
             priority=4,
             pet_id="p2",
+            time="07:30",
         )
     )
     owner.add_task(
@@ -55,12 +58,54 @@ def main() -> None:
             frequency="weekly",
             priority=2,
             pet_id="p1",
+            time="18:00",
+        )
+    )
+    owner.add_task(
+        Task(
+            description="Clean litter box",
+            duration_in_minutes=12,
+            frequency="daily",
+            priority=3,
+            pet_id="p2",
+            time="07:00",
+            is_completed=True,
+        )
+    )
+    owner.add_task(
+        Task(
+            description="Evening walk",
+            duration_in_minutes=25,
+            frequency="daily",
+            priority=3,
+            pet_id="p1",
+            time="19:00",
         )
     )
 
     scheduler = Scheduler()
-    todays_schedule = scheduler.generate_schedule_for_owner(owner)
+
+    print("\n=== Added Tasks (Input Order) ===")
+    print_schedule(owner, owner.tasks)
+
+    print("\n=== Sorted by Time ===")
+    tasks_sorted_by_time = scheduler.sort_by_time(owner.get_tasks_for_pets())
+    print_schedule(owner, tasks_sorted_by_time)
+
+    print("\n=== Priority Schedule with Time Tie-breaker ===")
+    todays_schedule = scheduler.generate_schedule_for_owner(
+        owner,
+        use_time_tiebreaker=True,
+    )
     print_schedule(owner, todays_schedule)
+
+    print("\n=== Filtered: Completed Tasks ===")
+    completed_tasks = owner.filter_tasks(is_completed=True)
+    print_schedule(owner, completed_tasks)
+
+    print("\n=== Filtered: Pending Tasks for Mochi ===")
+    mochi_pending_tasks = owner.filter_tasks(is_completed=False, pet_name="Mochi")
+    print_schedule(owner, mochi_pending_tasks)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from typing import List
 
 
@@ -26,6 +27,7 @@ class Task:
     duration_in_minutes: int
     frequency: str
     pet_id: str
+    due_date: date = field(default_factory=date.today)
     time: str = "00:00"
     is_completed: bool = False
     priority: int = 1
@@ -38,7 +40,8 @@ class Task:
             raise ValueError("Task duration_in_minutes must be greater than 0.")
         if self.priority < 1:
             raise ValueError("Task priority must be at least 1.")
-        if not self.frequency.strip():
+        self.frequency = self.frequency.strip().lower()
+        if not self.frequency:
             raise ValueError("Task frequency cannot be empty.")
         if not self.pet_id.strip():
             raise ValueError("Task pet_id cannot be empty.")
@@ -52,6 +55,14 @@ class Task:
     def mark_completed(self) -> None:
         """Mark this task as complete."""
         self.is_completed = True
+
+    def next_due_date(self) -> date | None:
+        """Return the next due date for recurring tasks, if applicable."""
+        if self.frequency == "daily":
+            return self.due_date + timedelta(days=1)
+        if self.frequency == "weekly":
+            return self.due_date + timedelta(weeks=1)
+        return None
 
     def mark_complete(self) -> None:
         """Backward-compatible alias for marking a task complete."""
@@ -187,3 +198,25 @@ class Scheduler:
             include_completed=include_completed,
             use_time_tiebreaker=use_time_tiebreaker,
         )
+
+    def mark_task_complete(self, owner: Owner, task: Task) -> Task | None:
+        """Mark a task complete and create the next recurring task when needed."""
+        if task.is_completed:
+            return None
+
+        task.mark_completed()
+        next_due_date = task.next_due_date()
+        if next_due_date is None:
+            return None
+
+        next_task = Task(
+            description=task.description,
+            duration_in_minutes=task.duration_in_minutes,
+            frequency=task.frequency,
+            pet_id=task.pet_id,
+            due_date=next_due_date,
+            time=task.time,
+            priority=task.priority,
+        )
+        owner.add_task(next_task)
+        return next_task
