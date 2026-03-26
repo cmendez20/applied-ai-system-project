@@ -26,6 +26,7 @@ class Task:
     duration_in_minutes: int
     frequency: str
     pet_id: str
+    time: str = "00:00"
     is_completed: bool = False
     priority: int = 1
 
@@ -41,6 +42,12 @@ class Task:
             raise ValueError("Task frequency cannot be empty.")
         if not self.pet_id.strip():
             raise ValueError("Task pet_id cannot be empty.")
+        time_parts = self.time.split(":")
+        if len(time_parts) != 2 or not all(part.isdigit() for part in time_parts):
+            raise ValueError("Task time must be in HH:MM format.")
+        hours, minutes = map(int, time_parts)
+        if not (0 <= hours <= 23 and 0 <= minutes <= 59):
+            raise ValueError("Task time must be a valid 24-hour value in HH:MM format.")
 
     def mark_completed(self) -> None:
         """Mark this task as complete."""
@@ -87,29 +94,69 @@ class Owner:
         pet_ids = {pet.pet_id for pet in self.pets}
         return [task for task in self.tasks if task.pet_id in pet_ids]
 
+    def filter_tasks(
+        self,
+        is_completed: bool | None = None,
+        pet_name: str | None = None,
+    ) -> List[Task]:
+        """Filter tasks by completion status and/or pet name."""
+        tasks = self.get_tasks_for_pets()
+
+        if is_completed is not None:
+            tasks = [task for task in tasks if task.is_completed == is_completed]
+
+        if pet_name is not None:
+            matching_pet_ids = {
+                pet.pet_id
+                for pet in self.pets
+                if pet.pet_name.casefold() == pet_name.casefold()
+            }
+            tasks = [task for task in tasks if task.pet_id in matching_pet_ids]
+
+        return tasks
+
 
 class Scheduler:
+    def sort_by_time(self, tasks: List[Task]) -> List[Task]:
+        """Return tasks ordered by their HH:MM time value."""
+        return sorted(
+            tasks,
+            key=lambda task: tuple(map(int, task.time.split(":"))),
+        )
+
     def generate_schedule(
         self,
         tasks: List[Task],
         available_minutes: int | None = None,
         include_completed: bool = False,
+        use_time_tiebreaker: bool = False,
     ) -> List[Task]:
-        """Return tasks ordered by priority, duration, and description."""
+        """Return tasks ordered by priority, with optional time tie-breaking."""
         candidate_tasks = (
             tasks
             if include_completed
             else [task for task in tasks if not task.is_completed]
         )
 
-        ordered_tasks = sorted(
-            candidate_tasks,
-            key=lambda task: (
-                -task.priority,
-                task.duration_in_minutes,
-                task.description,
-            ),
-        )
+        if use_time_tiebreaker:
+            ordered_tasks = sorted(
+                candidate_tasks,
+                key=lambda task: (
+                    -task.priority,
+                    tuple(map(int, task.time.split(":"))),
+                    task.duration_in_minutes,
+                    task.description,
+                ),
+            )
+        else:
+            ordered_tasks = sorted(
+                candidate_tasks,
+                key=lambda task: (
+                    -task.priority,
+                    task.duration_in_minutes,
+                    task.description,
+                ),
+            )
 
         if available_minutes is None:
             return ordered_tasks
@@ -130,6 +177,7 @@ class Scheduler:
         owner: Owner,
         available_minutes: int | None = None,
         include_completed: bool = False,
+        use_time_tiebreaker: bool = False,
     ) -> List[Task]:
         """Get owner tasks, then return an ordered schedule."""
         tasks = owner.get_tasks_for_pets()
@@ -137,4 +185,5 @@ class Scheduler:
             tasks,
             available_minutes=available_minutes,
             include_completed=include_completed,
+            use_time_tiebreaker=use_time_tiebreaker,
         )
