@@ -26,13 +26,22 @@ My design did change after I had copilot review my initial pawpal system skeleto
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The scheduler currently considers the following constraints:
+ - priority (higher first)
+ - duration_in_minutes (shorter first after priority)
+ - optional time tie-breaker (HH:MM) when priorities tie
+ - completion status (include_completed false by default)
+ - available_minutes budget (greedy fit within total time)
+- Outside core ordering, it also support:
+ - filtering by pet name/completion status
+ - conflict detection warnings when two tasks share the same time
+The constraint importance was chosen because I prioritized priority + limited time first because that matches a pet owner’s immediate need.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+One tradeoff is that the scheduler uses a simple greedy strategy (priority-first with optional time tie-break), so it may not produce a globally optimal plan for all combinations of durations/times/conflicts.
+
+However it is reasonable here for the project since t is fast, predictable, and easy to explain to users.
 
 ---
 
