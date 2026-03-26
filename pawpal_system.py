@@ -20,7 +20,7 @@ class Task:
 
 
 @dataclass
-class User:
+class Owner:
     owner_name: str
     pets: List[Pet] = field(default_factory=list)
     tasks: List[Task] = field(default_factory=list)
