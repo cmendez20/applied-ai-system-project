@@ -57,7 +57,12 @@ class Task:
         self.is_completed = True
 
     def next_due_date(self) -> date | None:
-        """Return the next due date for recurring tasks, if applicable."""
+        """Calculate the next due date for recurring tasks.
+
+        Returns:
+            The next due date when frequency is ``daily`` or ``weekly``.
+            Returns ``None`` for non-recurring frequencies.
+        """
         if self.frequency == "daily":
             return self.due_date + timedelta(days=1)
         if self.frequency == "weekly":
@@ -110,7 +115,15 @@ class Owner:
         is_completed: bool | None = None,
         pet_name: str | None = None,
     ) -> List[Task]:
-        """Filter tasks by completion status and/or pet name."""
+        """Filter owner tasks by completion status and/or pet name.
+
+        Args:
+            is_completed: If provided, include only tasks matching completion state.
+            pet_name: If provided, include only tasks for this pet name (case-insensitive).
+
+        Returns:
+            A filtered list of tasks linked to pets owned by this owner.
+        """
         tasks = self.get_tasks_for_pets()
 
         if is_completed is not None:
@@ -129,7 +142,17 @@ class Owner:
 
 class Scheduler:
     def sort_by_time(self, tasks: List[Task]) -> List[Task]:
-        """Return tasks ordered by their HH:MM time value."""
+        """Return tasks ordered by their ``HH:MM`` time value.
+
+        Uses a lambda key that parses each time string into ``(hour, minute)``
+        so string times are sorted chronologically rather than lexicographically.
+
+        Args:
+            tasks: Tasks to sort.
+
+        Returns:
+            A new list sorted from earliest to latest time.
+        """
         return sorted(
             tasks,
             key=lambda task: tuple(map(int, task.time.split(":"))),
@@ -142,7 +165,28 @@ class Scheduler:
         include_completed: bool = False,
         use_time_tiebreaker: bool = False,
     ) -> List[Task]:
-        """Return tasks ordered by priority, with optional time tie-breaking."""
+        """Generate an ordered schedule from a task list.
+
+        Ordering strategy:
+        - Primary sort: higher priority first.
+        - Optional tie-breaker: earlier time first.
+        - Secondary tie-breakers: shorter duration, then description.
+
+        If ``available_minutes`` is provided, tasks are greedily selected in order
+        while keeping total duration within the time budget.
+
+        Args:
+            tasks: Candidate tasks.
+            available_minutes: Optional time budget for selected tasks.
+            include_completed: Whether completed tasks can be scheduled.
+            use_time_tiebreaker: Whether ``time`` participates in tie-breaking.
+
+        Returns:
+            An ordered list of tasks, optionally constrained by time budget.
+
+        Raises:
+            ValueError: If ``available_minutes`` is negative.
+        """
         candidate_tasks = (
             tasks
             if include_completed
@@ -189,7 +233,19 @@ class Scheduler:
         tasks: List[Task],
         include_completed: bool = False,
     ) -> List[str]:
-        """Return warning messages when multiple tasks share the same scheduled time."""
+        """Detect lightweight time conflicts and return warning messages.
+
+        A conflict is any scheduled time shared by two or more tasks. This method
+        is non-blocking: it reports warnings and does not raise exceptions.
+
+        Args:
+            owner: Owner used to resolve pet IDs to pet names in warnings.
+            tasks: Tasks to inspect for shared time values.
+            include_completed: Whether completed tasks are included in detection.
+
+        Returns:
+            A list of human-readable warning strings. Empty if no conflicts.
+        """
         candidate_tasks = (
             tasks
             if include_completed
@@ -234,7 +290,17 @@ class Scheduler:
         include_completed: bool = False,
         use_time_tiebreaker: bool = False,
     ) -> List[Task]:
-        """Get owner tasks, then return an ordered schedule."""
+        """Generate a schedule using tasks that belong to a specific owner.
+
+        Args:
+            owner: Owner whose pet-linked tasks are scheduled.
+            available_minutes: Optional time budget for selected tasks.
+            include_completed: Whether completed tasks can be scheduled.
+            use_time_tiebreaker: Whether ``time`` participates in tie-breaking.
+
+        Returns:
+            An ordered schedule for the owner's tasks.
+        """
         tasks = owner.get_tasks_for_pets()
         return self.generate_schedule(
             tasks,
@@ -244,7 +310,19 @@ class Scheduler:
         )
 
     def mark_task_complete(self, owner: Owner, task: Task) -> Task | None:
-        """Mark a task complete and create the next recurring task when needed."""
+        """Mark a task complete and auto-create its next recurring occurrence.
+
+        For recurring tasks, this creates a new pending task with the same
+        attributes and an updated due date.
+
+        Args:
+            owner: Owner that will receive the next task instance.
+            task: Task to complete.
+
+        Returns:
+            The newly created recurring task, or ``None`` when no next occurrence
+            is needed (already complete or non-recurring frequency).
+        """
         if task.is_completed:
             return None
 
