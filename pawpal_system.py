@@ -30,6 +30,7 @@ class Task:
     priority: int = 1
 
     def __post_init__(self) -> None:
+        """Validate required task fields and value constraints."""
         if not self.description.strip():
             raise ValueError("Task description cannot be empty.")
         if self.duration_in_minutes <= 0:
@@ -94,13 +95,7 @@ class Scheduler:
         available_minutes: int | None = None,
         include_completed: bool = False,
     ) -> List[Task]:
-        """Return tasks ordered by priority, duration, and description.
-
-        Ordering rules:
-        1) Higher priority first.
-        2) For equal priority, shorter tasks first.
-        3) For ties, alphabetical by description.
-        """
+        """Return tasks ordered by priority, duration, and description."""
         candidate_tasks = (
             tasks
             if include_completed
