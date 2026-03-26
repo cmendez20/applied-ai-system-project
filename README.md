@@ -48,6 +48,6 @@ The current suite passes and validates the most important scheduling logic paths
 
 <a href="final_streamlit_app_01.png" target="_blank"><img src='final_streamlit_app_01.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
 
-<a href="/course_images/ai110/final_streamlit_app_02.png" target="_blank"><img src='/course_images/ai110/final_streamlit_app_02.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+<a href="final_streamlit_app_02.png" target="_blank"><img src='final_streamlit_app_02.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
 
-<a href="/course_images/ai110/final_streamlit_app_03.png" target="_blank"><img src='/course_images/ai110/final_streamlit_app_03.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+<a href="final_streamlit_app_03.png" target="_blank"><img src='final_streamlit_app_03.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
