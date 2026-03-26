@@ -49,13 +49,14 @@ However it is reasonable here for the project since t is fast, predictable, and 
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used copilot in agent mode for design brainstorming, debugging, and code refactoring. 
+Having copliot review and make suggestions to simplify or improve my code were the most helpful. 
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+When I initially created my UML design, the AI wanted to change my Owner class to "User."
+I had to reject the AI suggestion and restate my intent. I made sure to verify
+the changes AI made by creating & passing tests for each new feature. 
 
 ---
 
@@ -63,13 +64,36 @@ However it is reasonable here for the project since t is fast, predictable, and 
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+What behaviors I tested:
+  - Task completion status changes (mark_complete / mark_completed).
+  - Task assignment to pets (adding a task increases the pet’s task list).
+  - Chronological sorting by HH:MM (sort_by_time).
+  - Recurrence creation when completing tasks (daily -> +1 day, weekly -> +7 days).
+  - Non-recurring completion behavior (once does not create a new task).
+  - Conflict detection for duplicate times (including cross-pet conflicts).
+  - Conflict detection default behavior (ignores completed tasks unless explicitly included).
+  - Empty-owner scheduling behavior (pet exists, no tasks -> empty schedule).
+  - UI helper logic for conflict messaging, completion feedback, and due-date filtering.
+
+Why these tests were important
+  - They cover the core scheduling engine from input -> decision -> output.
+  - They validate both “happy path” workflows and failure-prone edge logic.
+  - They protect user trust: recurrence, ordering, and conflicts are the most visible behaviors in planning apps.
+  - They verify non-crashing warning behavior (important for good UX).
+
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I am pretty confident that the scheduler works correctly since the current automated suite passes 
+and covers key algorithms and several edge cases.
+
+Edge cases I’d test next with more time:
+  - Time parsing boundaries: 00:00, 23:59, invalid formats.
+  - Same-time conflicts for the same pet vs different pets in separate assertions.
+  - Recurrence across month/year boundaries (e.g., Dec 31 -> Jan 1).
+  - Time-budget selection quality (greedy scheduling leaves/uses expected minutes).
+  - Duplicate pet names with different IDs (pet-name filtering behavior).
+  - Multi-day due-date scenarios (today-only filters in schedule + completion flow).
 
 ---
 
@@ -77,12 +101,13 @@ However it is reasonable here for the project since t is fast, predictable, and 
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+I am most satisfied with shipping a working final project that satisfies the user's needs.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+If I had another iteration, I would redesign the UI & UX on the streamlit UI.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+The one important thing I learned about working with AI on this project is how important it is
+to come up with a great plan before implementation with AI.
