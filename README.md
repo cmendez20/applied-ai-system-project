@@ -51,3 +51,22 @@ Recent updates added lightweight scheduling intelligence to the core system:
 - **Task filtering:** owners can filter tasks by completion state and by pet name for faster review.
 - **Recurring automation:** completing a `daily` or `weekly` task can automatically create the next occurrence with a correctly incremented `due_date`.
 - **Conflict warnings:** the scheduler can detect tasks sharing the same time and return warnings (instead of crashing), including cross-pet conflicts.
+
+## Testing PawPal+
+
+Run the automated test suite from the project root:
+
+```bash
+python -m pytest
+```
+
+Current tests cover core scheduling behaviors, including task completion state changes,
+adding tasks to pets, chronological sorting by time, recurring-task generation for daily
+and weekly tasks, non-recurring task handling, empty-schedule behavior, and conflict
+detection for duplicate times.
+
+**Confidence Level:** ★★★★☆ (4/5)
+
+The suite currently passes and covers key logic paths for scheduling, recurrence, and
+conflict warnings. Confidence is high for implemented features, with room to grow through
+additional UI and integration tests.
