@@ -183,6 +183,50 @@ class Scheduler:
             used_minutes += task.duration_in_minutes
         return scheduled
 
+    def detect_time_conflicts(
+        self,
+        owner: Owner,
+        tasks: List[Task],
+        include_completed: bool = False,
+    ) -> List[str]:
+        """Return warning messages when multiple tasks share the same scheduled time."""
+        candidate_tasks = (
+            tasks
+            if include_completed
+            else [task for task in tasks if not task.is_completed]
+        )
+
+        tasks_by_time: dict[str, List[Task]] = {}
+        for task in candidate_tasks:
+            tasks_by_time.setdefault(task.time, []).append(task)
+
+        warnings: List[str] = []
+        for time, grouped_tasks in sorted(tasks_by_time.items()):
+            if len(grouped_tasks) < 2:
+                continue
+
+            pet_names = [
+                owner.get_pet(task.pet_id).pet_name
+                if owner.get_pet(task.pet_id) is not None
+                else task.pet_id
+                for task in grouped_tasks
+            ]
+            unique_pet_names = set(pet_names)
+            task_labels = ", ".join(task.description for task in grouped_tasks)
+
+            if len(unique_pet_names) == 1:
+                pet_name = next(iter(unique_pet_names))
+                warnings.append(
+                    f"Warning: time conflict at {time} for {pet_name} ({task_labels})."
+                )
+            else:
+                pets = ", ".join(sorted(unique_pet_names))
+                warnings.append(
+                    f"Warning: time conflict at {time} across pets [{pets}] ({task_labels})."
+                )
+
+        return warnings
+
     def generate_schedule_for_owner(
         self,
         owner: Owner,

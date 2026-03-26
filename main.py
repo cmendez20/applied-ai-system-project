@@ -23,6 +23,16 @@ def print_schedule(owner: Owner, schedule: list[Task]) -> None:
         )
 
 
+def print_warnings(warnings: list[str]) -> None:
+    print("\n=== Conflict Warnings ===")
+    if not warnings:
+        print("No time conflicts detected.")
+        return
+
+    for warning in warnings:
+        print(warning)
+
+
 def main() -> None:
     owner = Owner(owner_name="Jordan")
 
@@ -82,6 +92,16 @@ def main() -> None:
             time="19:00",
         )
     )
+    owner.add_task(
+        Task(
+            description="Give medication",
+            duration_in_minutes=5,
+            frequency="daily",
+            priority=5,
+            pet_id="p1",
+            time="07:30",
+        )
+    )
 
     scheduler = Scheduler()
 
@@ -91,6 +111,8 @@ def main() -> None:
     print("\n=== Sorted by Time ===")
     tasks_sorted_by_time = scheduler.sort_by_time(owner.get_tasks_for_pets())
     print_schedule(owner, tasks_sorted_by_time)
+    warnings = scheduler.detect_time_conflicts(owner, tasks_sorted_by_time)
+    print_warnings(warnings)
 
     print("\n=== Priority Schedule with Time Tie-breaker ===")
     todays_schedule = scheduler.generate_schedule_for_owner(
