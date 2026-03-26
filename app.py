@@ -3,6 +3,11 @@ from datetime import date
 import streamlit as st
 
 from pawpal_system import Owner, Pet, Scheduler, Task
+from ui_helpers import (
+    completion_feedback_message,
+    conflict_ui_payload,
+    filter_tasks_by_due_date,
+)
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -144,12 +149,16 @@ if owner.tasks:
     with col3:
         sort_tasks_by_time = st.checkbox("Sort filtered tasks by time", value=True)
 
+    only_due_today = st.checkbox("Show only tasks due today", value=False)
+
     status_map = {"All": None, "Pending": False, "Completed": True}
     pet_filter = None if selected_pet_filter == "All pets" else selected_pet_filter
     filtered_tasks = owner.filter_tasks(
         is_completed=status_map[selected_status_filter],
         pet_name=pet_filter,
     )
+    if only_due_today:
+        filtered_tasks = filter_tasks_by_due_date(filtered_tasks, date.today())
 
     if sort_tasks_by_time:
         filtered_tasks = scheduler.sort_by_time(filtered_tasks)
@@ -176,6 +185,7 @@ if owner.tasks:
         st.info("No tasks match the current filters.")
 
     pending_tasks = owner.filter_tasks(is_completed=False)
+    pending_tasks = filter_tasks_by_due_date(pending_tasks, date.today())
     if pending_tasks:
         pending_task_options = {
             (
@@ -193,13 +203,7 @@ if owner.tasks:
                 owner,
                 pending_task_options[selected_task_label],
             )
-            if next_task is not None:
-                st.success(
-                    "Task completed. Added next occurrence for "
-                    f"{next_task.due_date.isoformat()} at {next_task.time}."
-                )
-            else:
-                st.success("Task completed.")
+            st.success(completion_feedback_message(next_task))
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -213,22 +217,28 @@ available_minutes = st.number_input(
 )
 include_completed = st.checkbox("Include completed tasks", value=False)
 use_time_tiebreaker = st.checkbox("Use time as tie-breaker", value=True)
+today_only_schedule = st.checkbox("Only include tasks due today", value=True)
+
+tasks_for_planning = owner.get_tasks_for_pets()
+if today_only_schedule:
+    tasks_for_planning = filter_tasks_by_due_date(tasks_for_planning, date.today())
 
 conflict_warnings = scheduler.detect_time_conflicts(
     owner,
-    owner.get_tasks_for_pets(),
+    tasks_for_planning,
     include_completed=include_completed,
 )
-if conflict_warnings:
-    st.warning("Potential time conflicts found in your tasks:")
-    for warning in conflict_warnings:
-        st.warning(warning)
+conflict_status, conflict_messages = conflict_ui_payload(conflict_warnings)
+if conflict_status == "warning":
+    for message in conflict_messages:
+        st.warning(message)
 else:
-    st.success("No task time conflicts detected.")
+    for message in conflict_messages:
+        st.success(message)
 
 if st.button("Generate schedule"):
-    schedule = scheduler.generate_schedule_for_owner(
-        owner,
+    schedule = scheduler.generate_schedule(
+        tasks_for_planning,
         available_minutes=int(available_minutes),
         include_completed=include_completed,
         use_time_tiebreaker=use_time_tiebreaker,
