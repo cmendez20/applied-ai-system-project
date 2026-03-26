@@ -1,28 +1,20 @@
-# PawPal+ (Module 2 Project)
+# PawPal+
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal+ is a Streamlit app that helps a pet owner organize care tasks, prioritize what matters, and build a realistic daily plan.
 
-## Scenario
+## Features
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+- **Owner + Pet management:** create an owner profile, add multiple pets, and assign tasks per pet.
+- **Sorting by time (`HH:MM`):** tasks can be ordered chronologically with a dedicated scheduler method.
+- **Priority-based schedule generation:** tasks are ranked by priority with optional time-based tie-breaking.
+- **Time-budget planning:** generate a schedule constrained by available minutes.
+- **Task filtering:** filter by completion status and pet name for focused review.
+- **Daily recurrence automation:** completing a `daily` task auto-creates the next instance for `due_date + 1 day`.
+- **Weekly recurrence automation:** completing a `weekly` task auto-creates the next instance for `due_date + 7 days`.
+- **Conflict warnings:** detect duplicate task times and show non-blocking warnings for same-pet or cross-pet conflicts.
+- **Due-date focus:** optional “today only” filtering to keep plans actionable.
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
-
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
-
-## What you will build
-
-Your final app should:
-
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
-
-## Getting started
+## Getting Started
 
 ### Setup
 
@@ -32,25 +24,11 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
+### Run the Streamlit app
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
-
-## Smarter Scheduling
-
-Recent updates added lightweight scheduling intelligence to the core system:
-
-- **Time-aware ordering:** tasks can include a `time` field in `HH:MM` format, and the scheduler can sort tasks chronologically.
-- **Priority with time tie-breaker:** schedule generation still prioritizes important tasks first, with optional time-based tie-breaking for tasks with similar urgency.
-- **Task filtering:** owners can filter tasks by completion state and by pet name for faster review.
-- **Recurring automation:** completing a `daily` or `weekly` task can automatically create the next occurrence with a correctly incremented `due_date`.
-- **Conflict warnings:** the scheduler can detect tasks sharing the same time and return warnings (instead of crashing), including cross-pet conflicts.
+```bash
+streamlit run app.py
+```
 
 ## Testing PawPal+
 
@@ -60,13 +38,16 @@ Run the automated test suite from the project root:
 python -m pytest
 ```
 
-Current tests cover core scheduling behaviors, including task completion state changes,
-adding tasks to pets, chronological sorting by time, recurring-task generation for daily
-and weekly tasks, non-recurring task handling, empty-schedule behavior, and conflict
-detection for duplicate times.
+The tests cover core scheduling behavior, including chronological sorting, recurrence generation, conflict detection, completion handling, and due-date filtering helpers.
 
 **Confidence Level:** ★★★★☆ (4/5)
 
-The suite currently passes and covers key logic paths for scheduling, recurrence, and
-conflict warnings. Confidence is high for implemented features, with room to grow through
-additional UI and integration tests.
+The current suite passes and validates the most important scheduling logic paths. Confidence is strong for core behavior, with room to increase through full UI/integration test coverage.
+
+## 📸 Demo
+
+<a href="final_streamlit_app_01.png" target="_blank"><img src='final_streamlit_app_01.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+
+<a href="/course_images/ai110/final_streamlit_app_02.png" target="_blank"><img src='/course_images/ai110/final_streamlit_app_02.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+
+<a href="/course_images/ai110/final_streamlit_app_03.png" target="_blank"><img src='/course_images/ai110/final_streamlit_app_03.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
