@@ -4,8 +4,17 @@
 
 **a. Initial design**
 
+- Three core actions a user should be able to perform:
+  - Input their and their pet's basic info
+  - Ability to add pet care tasks (what needs to happen, how long it takes, priority)
+  - Build a plan/schedule for a day that chooses and orders tasks based on constraints
 - Briefly describe your initial UML design.
+  - There should a model for a user, their pet, and a task. 
 - What classes did you include, and what responsibilities did you assign to each?
+  - User class which has an attribute of "owner_name"
+  - Pet class which has an attribute of "pet_name" and "species"
+  - Task class with attributes of task_title, duration_in_minutes, and priority.
+  - Scheduler class with a method to generate the schedule.
 
 **b. Design changes**
 
