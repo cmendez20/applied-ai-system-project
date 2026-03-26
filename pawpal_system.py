@@ -6,6 +6,7 @@ from typing import List
 
 @dataclass
 class Pet:
+    pet_id: str
     pet_name: str
     species: str
 
@@ -15,6 +16,7 @@ class Task:
     task_title: str
     duration_in_minutes: int
     priority: int
+    pet_id: str
 
 
 @dataclass
@@ -33,6 +35,6 @@ class User:
 
 
 class Scheduler:
-    def generateSchedule(self, user: User, tasks: List[Task]) -> List[Task]:
+    def generateSchedule(self, tasks: List[Task]) -> List[Task]:
         """Generate and return an ordered daily schedule of tasks."""
         pass
