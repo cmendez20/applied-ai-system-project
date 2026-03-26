@@ -18,8 +18,7 @@
 
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+My design did change after I had copilot review my initial pawpal system skeleton. I added a relationship between Task & Pet so that a task could belong to a specific pet. Then, I updated my scheduler class so that it only used a single source of truth for the tasks.
 
 ---
 
