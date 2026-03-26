@@ -45,6 +45,10 @@ class Task:
         """Mark this task as complete."""
         self.is_completed = True
 
+    def mark_complete(self) -> None:
+        """Backward-compatible alias for marking a task complete."""
+        self.mark_completed()
+
     def mark_incomplete(self) -> None:
         """Mark this task as incomplete."""
         self.is_completed = False
