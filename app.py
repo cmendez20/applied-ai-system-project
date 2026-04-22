@@ -2,6 +2,7 @@ from datetime import date
 
 import streamlit as st
 
+from ai_planner import run_ai_planner_pipeline
 from pawpal_system import Owner, Pet, Scheduler, Task
 from ui_helpers import (
     completion_feedback_message,
@@ -218,6 +219,8 @@ available_minutes = st.number_input(
 include_completed = st.checkbox("Include completed tasks", value=False)
 use_time_tiebreaker = st.checkbox("Use time as tie-breaker", value=True)
 today_only_schedule = st.checkbox("Only include tasks due today", value=True)
+ai_planner_mode = st.checkbox("AI planner mode", value=False)
+show_planner_trace = st.checkbox("Show planner trace", value=False)
 
 tasks_for_planning = owner.get_tasks_for_pets()
 if today_only_schedule:
@@ -237,12 +240,33 @@ else:
         st.success(message)
 
 if st.button("Generate schedule"):
-    schedule = scheduler.generate_schedule(
-        tasks_for_planning,
-        available_minutes=int(available_minutes),
-        include_completed=include_completed,
-        use_time_tiebreaker=use_time_tiebreaker,
-    )
+    if ai_planner_mode:
+        planner_output = run_ai_planner_pipeline(
+            owner=owner,
+            scheduler=scheduler,
+            tasks=tasks_for_planning,
+            available_minutes=int(available_minutes),
+            include_completed=include_completed,
+            today_only_schedule=today_only_schedule,
+            use_time_tiebreaker=use_time_tiebreaker,
+        )
+        schedule = planner_output.final_schedule
+
+        st.info(f"AI planner confidence: {planner_output.confidence:.2f}")
+        for warning in planner_output.warnings:
+            st.warning(warning)
+
+        if show_planner_trace:
+            with st.expander("Planner trace", expanded=False):
+                st.table(planner_output.trace)
+    else:
+        schedule = scheduler.generate_schedule(
+            tasks_for_planning,
+            available_minutes=int(available_minutes),
+            include_completed=include_completed,
+            use_time_tiebreaker=use_time_tiebreaker,
+        )
+
     if schedule:
         st.success("Schedule generated.")
         st.table(
