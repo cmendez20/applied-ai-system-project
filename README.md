@@ -1,22 +1,53 @@
-# PawPal+
+# PawPal+ Project 4: Agentic AI Planner Mode
 
-PawPal+ is a Streamlit app that helps a pet owner organize care tasks, prioritize what matters, and build a realistic daily plan.
+## 1. Original Project Context (Modules 1-3)
 
-## Features
+The original PawPal+ project is a pet care scheduling app built in Python and Streamlit. It lets a user create pets, add care tasks with duration/priority/time, and generate a daily schedule under a time budget.
 
-- **Owner + Pet management:** create an owner profile, add multiple pets, and assign tasks per pet.
-- **Sorting by time (`HH:MM`):** tasks can be ordered chronologically with a dedicated scheduler method.
-- **Priority-based schedule generation:** tasks are ranked by priority with optional time-based tie-breaking.
-- **Time-budget planning:** generate a schedule constrained by available minutes.
-- **Task filtering:** filter by completion status and pet name for focused review.
-- **Daily recurrence automation:** completing a `daily` task auto-creates the next instance for `due_date + 1 day`.
-- **Weekly recurrence automation:** completing a `weekly` task auto-creates the next instance for `due_date + 7 days`.
-- **Conflict warnings:** detect duplicate task times and show non-blocking warnings for same-pet or cross-pet conflicts.
-- **Due-date focus:** optional “today only” filtering to keep plans actionable.
+Modules 1-3 focused on deterministic scheduling logic (`pawpal_system.py`) plus a lightweight Streamlit interface (`app.py`). Core capabilities included task filtering, priority ordering, conflict detection warnings, and recurrence handling for daily/weekly tasks.
 
-## Getting Started
+## 2. Project 4 Title & Why It Matters
 
-### Setup
+**Project 4 Title:** PawPal+ Agentic Planner Mode with Reliability Layer
+
+This extension adds an explicit agentic workflow to schedule generation so intermediate reasoning steps are visible and testable. It also adds a reliability layer (self-check + revision + eval harness) so planning quality can be measured instead of assumed.
+
+## 3. Architecture Overview
+
+When AI Planner Mode is enabled, schedule generation follows a five-step pipeline in `ai_planner.py` and returns the final plan with trace, confidence, and warnings.
+
+```text
+[User Inputs in Streamlit]
+        |
+        v
+[app.py UI Layer]
+        |
+        +--> (baseline) Scheduler.generate_schedule
+        |
+        +--> (AI Planner Mode ON)
+                |
+                v
+        [ai_planner.py Pipeline]
+        1) Interpret Constraints
+        2) Select Candidates
+        3) Draft Plan
+        4) Self-Check
+        5) Revise if Needed
+                |
+                +--> Trace + Confidence + Warnings
+                v
+         [Final Schedule Table]
+                |
+                v
+      [Reliability Layer: eval_ai.py + tests]
+                |
+                v
+        [Human review in UI]
+```
+
+## 4. Setup Instructions
+
+Run all commands from the repo root.
 
 ```bash
 python -m venv .venv
@@ -24,30 +55,72 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Run the Streamlit app
+Run the app:
 
 ```bash
 streamlit run app.py
 ```
 
-## Testing PawPal+
-
-Run the automated test suite from the project root:
+Run tests:
 
 ```bash
 python -m pytest
 ```
 
-The tests cover core scheduling behavior, including chronological sorting, recurrence generation, conflict detection, completion handling, and due-date filtering helpers.
+Run evaluation harness:
 
-**Confidence Level:** ★★★★☆ (4/5)
+```bash
+python eval_ai.py
+```
 
-The current suite passes and validates the most important scheduling logic paths. Confidence is strong for core behavior, with room to increase through full UI/integration test coverage.
+## 5. Sample Interactions (Input -> AI Planner Output)
 
-## 📸 Demo
+### Example 1: Tight budget
+- **Input:** `available_minutes=15`, `today_only_schedule=True`, `include_completed=False`
+- **Output:** planner keeps the highest-priority fitting task and skips longer lower-priority tasks.
+- **Trace highlight:** `draft_plan` shows budget-based skips; `self_check_plan` passes budget constraint.
 
-<a href="final_streamlit_app_01.png" target="_blank"><img src='final_streamlit_app_01.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+### Example 2: Conflict-heavy tasks
+- **Input:** multiple tasks at `07:30`, `use_time_tiebreaker=True`
+- **Output:** planner revises by removing lower-utility same-time conflicts and keeps one task in that slot.
+- **Trace highlight:** `self_check_plan` warns on conflicts, then `revise_plan_if_needed` resolves overlap.
 
-<a href="final_streamlit_app_02.png" target="_blank"><img src='final_streamlit_app_02.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+### Example 3: Normal planning day
+- **Input:** `available_minutes=90`, mixed priorities/times
+- **Output:** stable prioritized schedule with confidence near 1.0 and full five-step trace.
+- **Trace highlight:** all required steps appear: interpret -> select -> draft -> self-check -> revise.
 
-<a href="final_streamlit_app_03.png" target="_blank"><img src='final_streamlit_app_03.png' title='PawPal App' width='' alt='PawPal App' class='center-block' /></a>
+## 6. Design Decisions & Trade-offs
+
+- **Deterministic planner over external LLM calls:** improves reproducibility, unit testing, and local execution reliability.
+- **Interpretability over complexity:** pipeline emits trace rows for each step so users can inspect decisions.
+- **Guardrail-first behavior:** negative budgets are rejected, empty candidate sets are handled gracefully, and conflict checks are non-blocking but surfaced.
+- **Single revision pass:** keeps behavior predictable and easy to debug, at the cost of less exhaustive optimization.
+
+## 7. Testing Summary
+
+- Added planner tests in `tests/test_ai_planner.py` covering:
+  - time budget enforcement
+  - high-priority task selection
+  - conflict-triggered revision behavior
+  - full five-step trace presence
+  - confidence bounds in `[0, 1]`
+- Existing tests in `tests/test_pawpal.py` and `tests/test_ui_helpers.py` continue to validate domain and UI helper behavior.
+- Evaluation harness in `eval_ai.py` runs fixed scenarios and prints a scoreboard.
+- Latest harness run produced `passed/total: 6/6`, `avg confidence: 0.950`, `failed scenario names: None`.
+
+## 8. Reflection
+
+Reflection content for rubric prompts is tracked in `reflection.md`, including:
+- AI collaboration process
+- model limitations and bias risks
+- misuse prevention considerations
+- lessons learned and future improvements
+
+## Demo Screenshots
+
+<a href="final_streamlit_app_01.png" target="_blank"><img src='final_streamlit_app_01.png' title='PawPal App' alt='PawPal App screenshot 1' class='center-block' /></a>
+
+<a href="final_streamlit_app_02.png" target="_blank"><img src='final_streamlit_app_02.png' title='PawPal App' alt='PawPal App screenshot 2' class='center-block' /></a>
+
+<a href="final_streamlit_app_03.png" target="_blank"><img src='final_streamlit_app_03.png' title='PawPal App' alt='PawPal App screenshot 3' class='center-block' /></a>
