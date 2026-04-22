@@ -1,14 +1,30 @@
+import os
 from datetime import date
 
 import streamlit as st
 
 from ai_planner import run_ai_planner_pipeline
+from demo_seed import available_demo_scenarios, load_demo_scenario
 from pawpal_system import Owner, Pet, Scheduler, Task
 from ui_helpers import (
     completion_feedback_message,
     conflict_ui_payload,
     filter_tasks_by_due_date,
 )
+
+
+def _format_demo_name(name: str) -> str:
+    return name.replace("_", " ").title()
+
+
+def _apply_demo_scenario(name: str) -> None:
+    st.session_state.owner = load_demo_scenario(name)
+    st.session_state.demo_loaded_scenario = name
+    st.session_state.build_ai_planner_mode = True
+    st.session_state.build_show_planner_trace = True
+    st.session_state.build_today_only_schedule = True
+    st.session_state.build_include_completed = False
+    st.session_state.build_use_time_tiebreaker = True
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -53,6 +69,77 @@ if "owner" not in st.session_state:
 
 if "scheduler" not in st.session_state:
     st.session_state.scheduler = Scheduler()
+
+if "build_available_minutes" not in st.session_state:
+    st.session_state.build_available_minutes = 60
+if "build_include_completed" not in st.session_state:
+    st.session_state.build_include_completed = False
+if "build_use_time_tiebreaker" not in st.session_state:
+    st.session_state.build_use_time_tiebreaker = True
+if "build_today_only_schedule" not in st.session_state:
+    st.session_state.build_today_only_schedule = True
+if "build_ai_planner_mode" not in st.session_state:
+    st.session_state.build_ai_planner_mode = False
+if "build_show_planner_trace" not in st.session_state:
+    st.session_state.build_show_planner_trace = False
+if "demo_loaded_scenario" not in st.session_state:
+    st.session_state.demo_loaded_scenario = None
+if "demo_message" not in st.session_state:
+    st.session_state.demo_message = ""
+
+demo_scenarios = available_demo_scenarios()
+if "demo_selected_scenario" not in st.session_state:
+    st.session_state.demo_selected_scenario = demo_scenarios[0]
+
+if "demo_auto_seed_checked" not in st.session_state:
+    st.session_state.demo_auto_seed_checked = True
+    env_scenario = os.getenv("PAWPAL_DEMO_SCENARIO", "").strip()
+    if env_scenario:
+        try:
+            _apply_demo_scenario(env_scenario)
+            st.session_state.demo_selected_scenario = env_scenario
+            st.session_state.demo_message = (
+                "Auto-loaded demo scenario "
+                f"'{_format_demo_name(env_scenario)}' from PAWPAL_DEMO_SCENARIO."
+            )
+        except ValueError as exc:
+            st.session_state.demo_message = str(exc)
+
+with st.sidebar:
+    st.header("Demo Controls")
+    st.caption("Seed repeatable demo data for live walkthroughs.")
+
+    selected_demo_scenario = st.selectbox(
+        "Load demo scenario",
+        options=demo_scenarios,
+        key="demo_selected_scenario",
+        format_func=_format_demo_name,
+    )
+
+    sidebar_col1, sidebar_col2 = st.columns(2)
+    with sidebar_col1:
+        if st.button("Load scenario", use_container_width=True):
+            _apply_demo_scenario(selected_demo_scenario)
+            st.session_state.demo_message = (
+                f"Loaded '{_format_demo_name(selected_demo_scenario)}'. "
+                "AI planner mode and trace are enabled."
+            )
+            st.rerun()
+    with sidebar_col2:
+        if st.button("Reset demo data", use_container_width=True):
+            st.session_state.owner = Owner(owner_name="Jordan")
+            st.session_state.demo_loaded_scenario = None
+            st.session_state.build_ai_planner_mode = False
+            st.session_state.build_show_planner_trace = False
+            st.session_state.demo_message = "Reset to empty owner profile."
+            st.rerun()
+
+    if st.session_state.demo_loaded_scenario:
+        st.success(
+            f"Active demo: {_format_demo_name(st.session_state.demo_loaded_scenario)}"
+        )
+    if st.session_state.demo_message:
+        st.info(st.session_state.demo_message)
 
 owner: Owner = st.session_state.owner
 scheduler: Scheduler = st.session_state.scheduler
@@ -214,13 +301,17 @@ st.subheader("Build Schedule")
 st.caption("Generate an ordered plan from tasks tied to this owner's pets.")
 
 available_minutes = st.number_input(
-    "Available minutes today", min_value=0, value=60, step=5
+    "Available minutes today", min_value=0, step=5, key="build_available_minutes"
 )
-include_completed = st.checkbox("Include completed tasks", value=False)
-use_time_tiebreaker = st.checkbox("Use time as tie-breaker", value=True)
-today_only_schedule = st.checkbox("Only include tasks due today", value=True)
-ai_planner_mode = st.checkbox("AI planner mode", value=False)
-show_planner_trace = st.checkbox("Show planner trace", value=False)
+include_completed = st.checkbox("Include completed tasks", key="build_include_completed")
+use_time_tiebreaker = st.checkbox(
+    "Use time as tie-breaker", key="build_use_time_tiebreaker"
+)
+today_only_schedule = st.checkbox(
+    "Only include tasks due today", key="build_today_only_schedule"
+)
+ai_planner_mode = st.checkbox("AI planner mode", key="build_ai_planner_mode")
+show_planner_trace = st.checkbox("Show planner trace", key="build_show_planner_trace")
 
 tasks_for_planning = owner.get_tasks_for_pets()
 if today_only_schedule:
