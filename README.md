@@ -1,5 +1,8 @@
 # PawPal+ Project 4: Agentic AI Planner Mode
 
+## Video Demo Walkthrough
+[▶ Click here to Watch the Video Demo on Google Drive](https://drive.google.com/file/d/1zefClybibdvtxhpdNgjx9lXrf4HlA6lV/view?usp=sharing)
+
 ## 1. Original Project Context (Modules 1-3)
 
 The original PawPal+ project is a pet care scheduling app built in Python and Streamlit. It lets a user create pets, add care tasks with duration/priority/time, and generate a daily schedule under a time budget.
@@ -166,10 +169,10 @@ scope decisions aligned to explicit project requirements.
 
 
 
-## Demo Screenshots
+## Demo Screenshots of Input & Output
 
-<a href="app_01.png" target="_blank"><img src='app_01.png' title='PawPal App' alt='PawPal App screenshot 1' class='center-block' /></a>
+<a href="assets/app_01.png" target="_blank"><img src='assets/app_01.png' title='PawPal App' alt='PawPal App screenshot 1' class='center-block' /></a>
 
-<a href="app_02.png" target="_blank"><img src='app_02.png' title='PawPal App' alt='PawPal App screenshot 2' class='center-block' /></a>
+<a href="assets/app_02.png" target="_blank"><img src='assets/app_02.png' title='PawPal App' alt='PawPal App screenshot 2' class='center-block' /></a>
 
-<a href="app_03.png" target="_blank"><img src='app_03.png' title='PawPal App' alt='PawPal App screenshot 3' class='center-block' /></a>
+<a href="assets/app_03.png" target="_blank"><img src='assets/app_03.png' title='PawPal App' alt='PawPal App screenshot 3' class='center-block' /></a>
