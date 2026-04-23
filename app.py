@@ -348,8 +348,20 @@ if st.button("Generate schedule"):
             st.warning(warning)
 
         if show_planner_trace:
+            trace_table = [
+                {
+                    "Step": row["step"],
+                    "Input": row["input_summary"],
+                    "Decision": row["decision"],
+                    "Results": row["result_count"],
+                    "Minutes": row["minutes_used"],
+                    "Status": row["status"],
+                    "Notes": row["notes"],
+                }
+                for row in planner_output.trace
+            ]
             with st.expander("Planner trace", expanded=False):
-                st.table(planner_output.trace)
+                st.dataframe(trace_table, use_container_width=True, hide_index=True)
     else:
         schedule = scheduler.generate_schedule(
             tasks_for_planning,
